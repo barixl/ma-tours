@@ -68,3 +68,9 @@ def register_commands(app):
         """Seed the database with initial data."""
         from seeds.seed_data import run_seeds
         run_seeds()
+        
+    @app.cli.command('mock-data')
+    def mock_data():
+        """Seed the database with rich mock data for presentation."""
+        from seeds.mock_data import run_mock_seeds
+        run_mock_seeds()
