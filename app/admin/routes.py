@@ -16,7 +16,7 @@ from app.models.travel_style import TravelStyle
 from app.models.testimonial import Testimonial
 from app.models.hero_slide import HeroSlide
 from app.models.announcement import Announcement
-from app.models.gallery import GalleryCategory, GalleryImage
+from app.models.gallery import GalleryCategory, GalleryImage, HomepageGalleryImage
 from app.models.faq import FAQ
 from app.models.site_settings import SiteSettings
 from app.models.activity import Activity
@@ -43,17 +43,11 @@ def upload_image():
         if ext not in ['jpg', 'jpeg', 'png', 'webp', 'gif']:
             return {'success': False, 'error': 'Invalid file type. Allowed: jpg, jpeg, png, webp, gif'}, 400
             
-        filename = f"{uuid.uuid4().hex}.{ext}"
-        upload_dir = os.path.join(current_app.root_path, 'static', 'uploads')
-        os.makedirs(upload_dir, exist_ok=True)
-        
-        file_path = os.path.join(upload_dir, filename)
-        file.save(file_path)
-        
-        return {
-            'success': True, 
-            'url': url_for('static', filename=f'uploads/{filename}')
-        }
+        from app.utils.cloudinary import upload_image as upload_to_cloudinary
+        url = upload_to_cloudinary(file, folder="ma_tours/editor")
+        if url:
+            return {'success': True, 'url': url}
+        return {'success': False, 'error': 'Failed to upload image'}, 500
 
 
 # ─── Dashboard ──────────────────────────────────────────────────
@@ -110,14 +104,8 @@ def destinations_add():
         hero_image_url = None
         file = request.files.get('hero_image')
         if file and file.filename:
-            import os, uuid
-            from werkzeug.utils import secure_filename
-            filename = secure_filename(file.filename)
-            unique_filename = f"{uuid.uuid4().hex}_{filename}"
-            upload_folder = os.path.join(current_app.root_path, 'static', 'uploads', 'destinations')
-            os.makedirs(upload_folder, exist_ok=True)
-            file.save(os.path.join(upload_folder, unique_filename))
-            hero_image_url = url_for('static', filename=f'uploads/destinations/{unique_filename}')
+            from app.utils.cloudinary import upload_image as upload_to_cloudinary
+            hero_image_url = upload_to_cloudinary(file, folder="ma_tours/destinations")
         is_international = request.form.get('is_international') == 'on'
         is_active = request.form.get('is_active') == 'on'
 
@@ -164,14 +152,8 @@ def destinations_edit(id):
         hero_image_url = destination.hero_image_url
         file = request.files.get('hero_image')
         if file and file.filename:
-            import os, uuid
-            from werkzeug.utils import secure_filename
-            filename = secure_filename(file.filename)
-            unique_filename = f"{uuid.uuid4().hex}_{filename}"
-            upload_folder = os.path.join(current_app.root_path, 'static', 'uploads', 'destinations')
-            os.makedirs(upload_folder, exist_ok=True)
-            file.save(os.path.join(upload_folder, unique_filename))
-            hero_image_url = url_for('static', filename=f'uploads/destinations/{unique_filename}')
+            from app.utils.cloudinary import upload_image as upload_to_cloudinary
+            hero_image_url = upload_to_cloudinary(file, folder="ma_tours/destinations")
         is_international = request.form.get('is_international') == 'on'
         is_active = request.form.get('is_active') == 'on'
 
@@ -653,12 +635,10 @@ def hero_add():
         # Handle file upload
         if 'image_file' in request.files and request.files['image_file'].filename:
             file = request.files['image_file']
-            filename = secure_filename(file.filename)
-            unique_filename = f"{uuid.uuid4().hex}_{filename}"
-            upload_folder = os.path.join(current_app.root_path, 'static', 'uploads', 'hero')
-            os.makedirs(upload_folder, exist_ok=True)
-            file.save(os.path.join(upload_folder, unique_filename))
-            image_url = url_for('static', filename=f'uploads/hero/{unique_filename}')
+            from app.utils.cloudinary import upload_image as upload_to_cloudinary
+            url = upload_to_cloudinary(file, folder="ma_tours/hero")
+            if url:
+                image_url = url
             
         if not title or not image_url:
             flash('Title and Image are required.', 'error')
@@ -698,12 +678,10 @@ def hero_edit(id):
         # Handle file upload
         if 'image_file' in request.files and request.files['image_file'].filename:
             file = request.files['image_file']
-            filename = secure_filename(file.filename)
-            unique_filename = f"{uuid.uuid4().hex}_{filename}"
-            upload_folder = os.path.join(current_app.root_path, 'static', 'uploads', 'hero')
-            os.makedirs(upload_folder, exist_ok=True)
-            file.save(os.path.join(upload_folder, unique_filename))
-            image_url = url_for('static', filename=f'uploads/hero/{unique_filename}')
+            from app.utils.cloudinary import upload_image as upload_to_cloudinary
+            url = upload_to_cloudinary(file, folder="ma_tours/hero")
+            if url:
+                image_url = url
         if not image_url:
             image_url = slide.image_url
             
@@ -772,7 +750,86 @@ def announcement_manage():
     return render_template('admin/announcement/form.html', announcement=announcement)
 
 
-# ─── Gallery ────────────────────────────────────────────────────
+# ─── Homepage Gallery ─────────────────────────────────────────────
+
+@admin_bp.route('/homepage-gallery', methods=['GET', 'POST'])
+@login_required
+def homepage_gallery_list():
+    """View and manage images for the homepage bento grid."""
+    if request.method == 'POST':
+        caption = request.form.get('caption', '').strip()
+        
+        # Handle file upload
+        image_url = None
+        if 'image_file' in request.files and request.files['image_file'].filename:
+            file = request.files['image_file']
+            from app.utils.cloudinary import upload_image as upload_to_cloudinary
+            url = upload_to_cloudinary(file, folder="ma_tours/homepage")
+            if url:
+                image_url = url
+                
+        if not image_url:
+            flash('Image file is required.', 'error')
+            return redirect(url_for('admin.homepage_gallery_list'))
+            
+        max_order = db.session.query(db.func.max(HomepageGalleryImage.display_order)).scalar() or 0
+        image = HomepageGalleryImage(
+            image_url=image_url,
+            caption=caption or None,
+            display_order=max_order + 1
+        )
+        db.session.add(image)
+        db.session.commit()
+        flash('Image added to homepage gallery.', 'success')
+        return redirect(url_for('admin.homepage_gallery_list'))
+        
+    images = HomepageGalleryImage.query.order_by(HomepageGalleryImage.display_order).all()
+    return render_template('admin/homepage_gallery/list.html', images=images)
+
+
+@admin_bp.route('/homepage-gallery/<string:id>/delete', methods=['POST'])
+@login_required
+def homepage_gallery_delete(id):
+    """Delete a homepage gallery image."""
+    image = db.session.get(HomepageGalleryImage, id)
+    if not image:
+        return redirect(url_for('admin.homepage_gallery_list'))
+        
+    db.session.delete(image)
+    db.session.commit()
+    flash('Image deleted.', 'success')
+    return redirect(url_for('admin.homepage_gallery_list'))
+
+
+@admin_bp.route('/homepage-gallery/<string:id>/move/<string:direction>', methods=['POST'])
+@login_required
+def homepage_gallery_move(id, direction):
+    """Move a homepage gallery image up or down in display order."""
+    image = db.session.get(HomepageGalleryImage, id)
+    if not image:
+        return redirect(url_for('admin.homepage_gallery_list'))
+        
+    current_order = image.display_order
+    
+    if direction == 'up':
+        swap_img = HomepageGalleryImage.query.filter(
+            HomepageGalleryImage.display_order < current_order
+        ).order_by(HomepageGalleryImage.display_order.desc()).first()
+    elif direction == 'down':
+        swap_img = HomepageGalleryImage.query.filter(
+            HomepageGalleryImage.display_order > current_order
+        ).order_by(HomepageGalleryImage.display_order.asc()).first()
+    else:
+        swap_img = None
+        
+    if swap_img:
+        image.display_order, swap_img.display_order = swap_img.display_order, image.display_order
+        db.session.commit()
+        
+    return redirect(url_for('admin.homepage_gallery_list'))
+
+
+# ─── General Gallery ────────────────────────────────────────────
 
 @admin_bp.route('/gallery', methods=['GET', 'POST'])
 @login_required
@@ -1204,13 +1261,13 @@ def activities_add():
 
         if not name:
             flash('Activity name is required.', 'error')
-            return render_template('admin/activities/form.html', mode='add')
+            return render_template('admin/activities/form.html', mode='add', categories=categories)
 
         slug = generate_slug(name)
         existing = Activity.query.filter_by(slug=slug).first()
         if existing:
             flash(f'An activity with slug "{slug}" already exists.', 'error')
-            return render_template('admin/activities/form.html', mode='add')
+            return render_template('admin/activities/form.html', mode='add', categories=categories)
 
         activity = Activity(
             name=name,
@@ -1219,6 +1276,7 @@ def activities_add():
             image_url=image_url or None,
             is_active=is_active
         )
+        activity.category_id = category_id
         db.session.add(activity)
         db.session.commit()
         flash(f'Activity "{name}" added.', 'success')

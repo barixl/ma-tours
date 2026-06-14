@@ -192,7 +192,7 @@
                 <h2 class="text-3xl font-bold font-serif text-gray-900 mb-6">Gallery</h2>
                 <div class="grid grid-cols-2 md:grid-cols-3 gap-4">
                     {% for img in package.images %}
-                    <a href="{{ img.image_url }}" target="_blank" class="block relative h-48 rounded-xl overflow-hidden group">
+                    <a href="{{ img.image_url }}" target="_blank" class="block relative aspect-video rounded-xl overflow-hidden group">
                         <img src="{{ img.image_url }}" alt="Gallery Image" class="w-full h-full object-cover transform group-hover:scale-110 transition-transform duration-500">
                         <div class="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-20 transition-opacity"></div>
                     </a>

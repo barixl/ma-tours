@@ -125,3 +125,18 @@
     {% endif %}
 </div>
 {% endblock %}
+
+{% block extra_scripts %}
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        if (window.location.hash) {
+            setTimeout(function() {
+                var target = document.querySelector(window.location.hash);
+                if (target) {
+                    target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                }
+            }, 500); // Wait for images/layout to settle
+        }
+    });
+</script>
+{% endblock %}

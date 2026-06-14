@@ -31,3 +31,17 @@ class GalleryImage(db.Model):
 
     def __repr__(self):
         return f'<GalleryImage {self.id}>'
+
+
+class HomepageGalleryImage(db.Model):
+    __tablename__ = 'homepage_gallery_images'
+
+    id = db.Column(db.String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
+    image_url = db.Column(db.String(500), nullable=False)
+    caption = db.Column(db.String(300), nullable=True)
+    display_order = db.Column(db.Integer, default=0)
+    is_active = db.Column(db.Boolean, default=True, nullable=False)
+    created_at = db.Column(db.DateTime, server_default=db.func.now())
+
+    def __repr__(self):
+        return f'<HomepageGalleryImage {self.id}>'

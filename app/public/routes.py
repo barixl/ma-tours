@@ -9,7 +9,7 @@ from app.models.destination import Destination
 from app.models.travel_style import TravelStyle
 from app.models.testimonial import Testimonial
 from app.models.faq import FAQ
-from app.models.gallery import GalleryImage, GalleryCategory
+from app.models.gallery import GalleryImage, HomepageGalleryImage, GalleryCategory
 from app.models.inquiry import Inquiry
 from app.models.site_settings import SiteSettings
 from app.models.activity import Activity
@@ -42,6 +42,9 @@ def home():
     # Get global site settings (for hero config)
     settings = SiteSettings.query.first()
     
+    # Fetch top 8 homepage gallery images
+    homepage_gallery = HomepageGalleryImage.query.filter_by(is_active=True).order_by(HomepageGalleryImage.display_order).limit(8).all()
+    
     return render_template('public/home.html', 
                            hero_slides=hero_slides,
                            announcement=announcement,
@@ -51,6 +54,7 @@ def home():
                            testimonials=testimonials,
                            faqs=faqs,
                            gallery_images=gallery_images,
+                           homepage_gallery=homepage_gallery,
                            settings=settings)
 
 
