@@ -1,7 +1,7 @@
 from flask import render_template, request, jsonify
 
 from app.extensions import db
-from app.public import public_bp
+from app.frontend import public_bp
 from app.models.hero_slide import HeroSlide
 from app.models.announcement import Announcement
 from app.models.package import Package

@@ -29,7 +29,7 @@ def create_app(config_name=None):
     from app.admin import admin_bp
     app.register_blueprint(admin_bp)
 
-    from app.public import public_bp
+    from app.frontend import public_bp
     app.register_blueprint(public_bp)
 
     # Register CLI commands
