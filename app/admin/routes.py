@@ -203,6 +203,23 @@ def destinations_toggle(id):
     return redirect(url_for('admin.destinations_list'))
 
 
+@admin_bp.route('/destinations/<string:id>/delete', methods=['POST'])
+@login_required
+def destinations_delete(id):
+    """Delete a destination."""
+    destination = db.session.get(Destination, id)
+    if not destination:
+        flash('Destination not found.', 'error')
+        return redirect(url_for('admin.destinations_list'))
+
+    name = destination.name
+    db.session.delete(destination)
+    db.session.commit()
+    flash(f'Destination "{name}" deleted successfully.', 'success')
+    return redirect(url_for('admin.destinations_list'))
+
+
+
 # ─── Packages ───────────────────────────────────────────────────
 
 @admin_bp.route('/packages')
@@ -1421,6 +1438,23 @@ def activities_toggle(id):
         db.session.commit()
         flash('Activity status updated.', 'success')
     return redirect(url_for('admin.activities_list'))
+
+
+@admin_bp.route('/activities/<string:id>/delete', methods=['POST'])
+@login_required
+def activities_delete(id):
+    """Delete an activity."""
+    activity = db.session.get(Activity, id)
+    if not activity:
+        flash('Activity not found.', 'error')
+        return redirect(url_for('admin.activities_list'))
+
+    name = activity.name
+    db.session.delete(activity)
+    db.session.commit()
+    flash(f'Activity "{name}" deleted successfully.', 'success')
+    return redirect(url_for('admin.activities_list'))
+
 
 
 # ─── Package Departures ─────────────────────────────────────────
