@@ -3,14 +3,15 @@
 {% set is_transparent_nav = True %}
 
 {% block title %}M.A. Tours | {{ package.seo_title or package.title }}{% endblock %}
-{% block meta_description %}{{ package.seo_description or package.short_description or package.description[:150]|striptags }}{% endblock %}
+{% block meta_description %}{{ package.seo_description or package.short_description or (package.description or '')[:150]|striptags }}{% endblock %}
 
 {% block content %}
 <!-- Hero Header -->
 <div class="relative bg-gray-900 h-[60vh] min-h-[500px] overflow-hidden">
     <div class="absolute inset-0">
         {% if package.images.count() > 0 %}
-        <img src="{{ package.images.first().image_url }}" alt="{{ package.title }}" class="w-full h-full object-cover opacity-60">
+        {% set hero_img = package.images.first().image_url %}
+        <img src="{{ hero_img if hero_img.startswith('http') or hero_img.startswith('/') else '/' ~ hero_img if hero_img.startswith('static/') else '/static/' ~ hero_img }}" alt="{{ package.title }}" class="w-full h-full object-cover opacity-60">
         {% else %}
         <div class="w-full h-full bg-gray-800"></div>
         {% endif %}
@@ -186,17 +187,38 @@
             </section>
             {% endif %}
 
-            <!-- Photo Gallery -->
-            {% if package.images.count() > 1 %}
-            <section>
+            <!-- Photo Gallery Carousel -->
+            {% if package.images.count() > 0 %}
+            <section id="gallery-app" class="space-y-4" v-cloak>
                 <h2 class="text-3xl font-bold font-serif text-gray-900 mb-6">Gallery</h2>
-                <div class="grid grid-cols-2 md:grid-cols-3 gap-4">
-                    {% for img in package.images %}
-                    <a href="{{ img.image_url }}" target="_blank" class="block relative aspect-video rounded-xl overflow-hidden group">
-                        <img src="{{ img.image_url }}" alt="Gallery Image" class="w-full h-full object-cover transform group-hover:scale-110 transition-transform duration-500">
-                        <div class="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-20 transition-opacity"></div>
-                    </a>
-                    {% endfor %}
+                
+                <!-- Main Large Image Container -->
+                <div class="relative aspect-[16/9] w-full rounded-2xl overflow-hidden bg-gray-900 shadow-md group">
+                    <img :src="images[activeIndex].url" alt="Package Gallery Image" class="w-full h-full object-cover select-none transition-all duration-300">
+                    
+                    <!-- Left Arrow Button -->
+                    <button v-if="images.length > 1" @click="prevImage" class="absolute left-4 top-1/2 -translate-y-1/2 bg-white/70 hover:bg-white text-gray-900 p-3 rounded-full shadow-lg backdrop-blur-md transition-all focus:outline-none md:opacity-0 md:group-hover:opacity-100 opacity-100 flex items-center justify-center">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M15 19l-7-7 7-7"/></svg>
+                    </button>
+                    
+                    <!-- Right Arrow Button -->
+                    <button v-if="images.length > 1" @click="nextImage" class="absolute right-4 top-1/2 -translate-y-1/2 bg-white/70 hover:bg-white text-gray-900 p-3 rounded-full shadow-lg backdrop-blur-md transition-all focus:outline-none md:opacity-0 md:group-hover:opacity-100 opacity-100 flex items-center justify-center">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5l7 7-7 7"/></svg>
+                    </button>
+
+                    <!-- Image Counter Overlay -->
+                    <div class="absolute bottom-4 right-4 bg-black/60 text-white px-3 py-1 rounded-full text-xs font-semibold backdrop-blur-sm tracking-wider">
+                        ${ activeIndex + 1 } / ${ images.length }
+                    </div>
+                </div>
+
+                <!-- Thumbnails Bottom Row -->
+                <div v-if="images.length > 1" class="flex items-center justify-center gap-3 overflow-x-auto py-2">
+                    <div v-for="(img, idx) in images" :key="img.id" @click="setActiveImage(idx)" 
+                         class="relative w-20 h-14 md:w-28 md:h-20 rounded-lg overflow-hidden cursor-pointer border-2 transition-all duration-200 shrink-0"
+                         :class="activeIndex === idx ? 'border-primary-600 scale-105 shadow-md opacity-100' : 'border-transparent opacity-60 hover:opacity-100 hover:border-gray-300'">
+                        <img :src="img.url" alt="Thumbnail" class="w-full h-full object-cover select-none">
+                    </div>
                 </div>
             </section>
             {% endif %}
@@ -356,7 +378,8 @@
             <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden hover:shadow-xl transition-all duration-300 group flex flex-col h-full">
                 <div class="relative h-64 overflow-hidden">
                     {% if pkg.images.count() > 0 %}
-                    <img src="{{ pkg.images.first().image_url }}" alt="{{ pkg.title }}" class="w-full h-full object-cover transform group-hover:scale-110 transition-transform duration-700">
+                    {% set rel_img = pkg.images.first().image_url %}
+                    <img src="{{ rel_img if rel_img.startswith('http') or rel_img.startswith('/') else '/' ~ rel_img if rel_img.startswith('static/') else '/static/' ~ rel_img }}" alt="{{ pkg.title }}" class="w-full h-full object-cover transform group-hover:scale-110 transition-transform duration-700">
                     {% else %}
                     <div class="w-full h-full bg-gray-200 flex items-center justify-center text-gray-400">
                         <svg class="w-12 h-12" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
@@ -389,6 +412,59 @@
 {% block extra_scripts %}
 <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
 <script>
+    // Gallery App
+    if (document.getElementById('gallery-app')) {
+        const galleryApp = Vue.createApp({
+            delimiters: ['${', '}'],
+            setup() {
+                const images = Vue.ref([
+                    {% for img in package.images.all() %}
+                    {% set img_url = img.image_url if img.image_url.startswith('http') or img.image_url.startswith('/') else '/' ~ img.image_url if img.image_url.startswith('static/') else '/static/' ~ img.image_url %}
+                    { id: '{{ img.id }}', url: '{{ img_url }}' },
+                    {% endfor %}
+                ]);
+                const activeIndex = Vue.ref(0);
+
+                const nextImage = () => {
+                    activeIndex.value = (activeIndex.value + 1) % images.value.length;
+                };
+
+                const prevImage = () => {
+                    activeIndex.value = (activeIndex.value - 1 + images.value.length) % images.value.length;
+                };
+
+                const setActiveImage = (index) => {
+                    activeIndex.value = index;
+                };
+
+                // Keyboard Navigation
+                const handleKeyDown = (e) => {
+                    if (images.value.length <= 1) return;
+                    const activeEl = document.activeElement;
+                    if (activeEl && (activeEl.tagName === 'INPUT' || activeEl.tagName === 'TEXTAREA' || activeEl.isContentEditable)) {
+                        return;
+                    }
+                    if (e.key === 'ArrowRight') {
+                        nextImage();
+                    } else if (e.key === 'ArrowLeft') {
+                        prevImage();
+                    }
+                };
+
+                Vue.onMounted(() => {
+                    window.addEventListener('keydown', handleKeyDown);
+                });
+
+                Vue.onUnmounted(() => {
+                    window.removeEventListener('keydown', handleKeyDown);
+                });
+
+                return { images, activeIndex, nextImage, prevImage, setActiveImage };
+            }
+        });
+        galleryApp.mount('#gallery-app');
+    }
+
     // Itinerary Accordion
     if (document.getElementById('itinerary-app')) {
         const itineraryApp = Vue.createApp({

@@ -115,7 +115,7 @@
                             {{ pkg.title }}
                         </a></h3>
                         
-                        <p class="text-gray-600 text-sm mb-6 line-clamp-2 flex-grow">{{ pkg.short_description or pkg.description[:100]|striptags|safe }}...</p>
+                        <p class="text-gray-600 text-sm mb-6 line-clamp-2 flex-grow">{{ pkg.short_description or (pkg.description or '')[:100]|striptags|safe }}...</p>
                         
                         <a href="{{ url_for('public.package_detail', slug=pkg.slug) }}" class="w-full btn btn-secondary text-center">View Details</a>
                     </div>

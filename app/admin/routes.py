@@ -564,6 +564,12 @@ def package_gallery(id):
         return redirect(url_for('admin.packages_list'))
 
     if request.method == 'POST':
+        # Check limit of 6 images
+        images_count = PackageImage.query.filter_by(package_id=id).count()
+        if images_count >= 6:
+            flash('Maximum of 6 images allowed per package. Please delete an image first.', 'error')
+            return redirect(url_for('admin.package_gallery', id=id))
+
         if 'image_file' not in request.files:
             flash('No image file provided.', 'error')
             return redirect(url_for('admin.package_gallery', id=id))
@@ -1599,3 +1605,106 @@ def activity_categories_toggle(id):
         status = 'activated' if category.is_active else 'deactivated'
         flash(f'Category {status}.', 'success')
     return redirect(url_for('admin.activity_categories_list'))
+
+
+# ==========================================
+# YOUTUBE SHORTS
+# ==========================================
+
+from app.models.youtube_short import YoutubeShort
+
+@admin_bp.route('/shorts')
+@login_required
+def shorts_list():
+    """List all YouTube Shorts."""
+    shorts = YoutubeShort.query.order_by(YoutubeShort.display_order).all()
+    return render_template('admin/shorts/list.html', shorts=shorts)
+
+
+@admin_bp.route('/shorts/add', methods=['GET', 'POST'])
+@login_required
+def shorts_add():
+    """Add a new YouTube Short."""
+    if request.method == 'POST':
+        title = request.form.get('title', '').strip()
+        video_url = request.form.get('video_url', '').strip()
+        display_order = request.form.get('display_order', type=int, default=0)
+        is_active = request.form.get('is_active') == 'on'
+
+        if not title or not video_url:
+            flash('Title and Video URL are required.', 'error')
+            return redirect(url_for('admin.shorts_list'))
+
+        # Extract video ID from URL
+        import re
+        video_id = None
+        match = re.search(r'(?:v=|youtu\.be/|shorts/|embed/)([a-zA-Z0-9_-]{11})', video_url)
+        if match:
+            video_id = match.group(1)
+        else:
+            video_id = video_url.strip() # Fallback to using the raw input as ID
+
+        if not video_id or len(video_id) != 11:
+            flash('Invalid YouTube URL or ID.', 'error')
+            return redirect(url_for('admin.shorts_list'))
+
+        short = YoutubeShort(
+            title=title,
+            video_id=video_id,
+            display_order=display_order,
+            is_active=is_active
+        )
+        db.session.add(short)
+        db.session.commit()
+        flash('YouTube Short added successfully.', 'success')
+        return redirect(url_for('admin.shorts_list'))
+
+
+@admin_bp.route('/shorts/<string:id>/delete', methods=['POST'])
+@login_required
+def shorts_delete(id):
+    """Delete a YouTube Short."""
+    short = db.session.get(YoutubeShort, id)
+    if short:
+        db.session.delete(short)
+        db.session.commit()
+        flash('YouTube Short deleted.', 'success')
+    return redirect(url_for('admin.shorts_list'))
+
+
+@admin_bp.route('/shorts/<string:id>/toggle', methods=['POST'])
+@login_required
+def shorts_toggle(id):
+    """Toggle YouTube Short active status."""
+    short = db.session.get(YoutubeShort, id)
+    if short:
+        short.is_active = not short.is_active
+        db.session.commit()
+        status = 'activated' if short.is_active else 'deactivated'
+        flash(f'YouTube Short {status}.', 'success')
+    return redirect(url_for('admin.shorts_list'))
+
+
+@admin_bp.route('/shorts/<string:id>/move/<string:direction>', methods=['POST'])
+@login_required
+def shorts_move(id, direction):
+    """Move a YouTube Short up or down in display order."""
+    short = db.session.get(YoutubeShort, id)
+    if not short:
+        return redirect(url_for('admin.shorts_list'))
+
+    current_order = short.display_order
+    
+    if direction == 'up':
+        swap_short = YoutubeShort.query.filter(YoutubeShort.display_order < current_order).order_by(YoutubeShort.display_order.desc()).first()
+    elif direction == 'down':
+        swap_short = YoutubeShort.query.filter(YoutubeShort.display_order > current_order).order_by(YoutubeShort.display_order.asc()).first()
+    else:
+        swap_short = None
+
+    if swap_short:
+        short.display_order, swap_short.display_order = swap_short.display_order, short.display_order
+        db.session.commit()
+        flash('Short order updated.', 'success')
+
+    return redirect(url_for('admin.shorts_list'))

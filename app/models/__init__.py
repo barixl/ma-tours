@@ -17,6 +17,7 @@ from app.models.site_settings import SiteSettings
 from app.models.activity_category import ActivityCategory
 from app.models.activity import Activity
 from app.models.departure import PackageDeparture
+from app.models.youtube_short import YoutubeShort
 
 __all__ = [
     'Admin',
@@ -35,4 +36,5 @@ __all__ = [
     'ActivityCategory',
     'Activity',
     'PackageDeparture',
+    'YoutubeShort',
 ]

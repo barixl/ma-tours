@@ -14,6 +14,7 @@ from app.models.testimonial import Testimonial
 from app.models.faq import FAQ
 from app.models.gallery import HomepageGalleryImage
 from app.models.travel_style import TravelStyle
+from app.models.youtube_short import YoutubeShort
 
 def run_mock_seeds():
     print("Seeding mock data...")
@@ -110,6 +111,19 @@ def run_mock_seeds():
     for img in bento_images:
         if not HomepageGalleryImage.query.filter_by(caption=img['caption']).first():
             db.session.add(HomepageGalleryImage(**img))
+
+    # YouTube Shorts
+    print("Adding YouTube Shorts...")
+    shorts = [
+        {"title": "Snowboarding in Gulmarg", "video_id": "NdGVO7RcXwc", "display_order": 1},
+        {"title": "Shikara Ride Experience", "video_id": "P-nLl8KEDlk", "display_order": 2},
+        {"title": "Kashmiri Wazwan Feast", "video_id": "7Fkxl087QOA", "display_order": 3},
+        {"title": "Pahalgam Valley View", "video_id": "AE6NnP2Gago", "display_order": 4},
+        {"title": "Tulip Garden Srinagar", "video_id": "uMkDEQf9Stw", "display_order": 5}
+    ]
+    for short in shorts:
+        if not YoutubeShort.query.filter_by(title=short['title']).first():
+            db.session.add(YoutubeShort(**short))
 
     db.session.commit()
     print("Mock data seeded successfully!")

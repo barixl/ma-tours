@@ -1,0 +1,142 @@
+{% extends "admin/base.html" %}
+
+{% block page_title %}YouTube Shorts{% endblock %}
+{% block page_subtitle %}Manage vertically scrolling shorts for the homepage{% endblock %}
+
+{% block content %}
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+    <!-- LEFT: Shorts List (2/3) -->
+    <div class="lg:col-span-2">
+        <div class="admin-card">
+            <div class="admin-card-header flex justify-between items-center">
+                <h2 class="admin-card-title">Active Shorts ({{ shorts|length }})</h2>
+                <p class="text-xs text-gray-500">Ordered from left to right</p>
+            </div>
+            
+            {% if shorts %}
+            <ul class="divide-y divide-gray-100">
+                {% for short in shorts %}
+                <li class="p-4 flex items-center justify-between hover:bg-gray-50 transition-colors {% if not short.is_active %}opacity-50{% endif %}">
+                    <div class="flex items-center gap-4">
+                        <!-- Order display -->
+                        <span class="text-xs font-semibold text-gray-400 w-6 text-center">#{{ short.display_order }}</span>
+                        
+                        <!-- Video iframe preview (Aspect ratio 9:16) -->
+                        <div class="w-16 h-28 bg-gray-200 rounded overflow-hidden flex-shrink-0 shadow-sm relative pointer-events-none">
+                            <iframe 
+                                src="https://www.youtube.com/embed/{{ short.video_id }}?controls=0&showinfo=0&rel=0&modestbranding=1" 
+                                class="absolute top-0 left-0 w-full h-full border-0"
+                                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
+                                allowfullscreen>
+                            </iframe>
+                        </div>
+
+                        <div>
+                            <p class="font-medium text-gray-900">{{ short.title }}</p>
+                            <p class="text-xs text-gray-500 font-mono mt-1">{{ short.video_id }}</p>
+                            {% if not short.is_active %}
+                            <span class="inline-flex mt-1 items-center px-2 py-0.5 rounded text-xs font-medium bg-gray-100 text-gray-800">
+                                Hidden
+                            </span>
+                            {% endif %}
+                        </div>
+                    </div>
+                    
+                    <div class="flex items-center gap-2">
+                        <!-- Toggle Status -->
+                        <form action="{{ url_for('admin.shorts_toggle', id=short.id) }}" method="POST">
+                            <button type="submit" class="admin-btn-icon {% if short.is_active %}text-green-500 hover:text-green-700{% else %}text-gray-400 hover:text-gray-600{% endif %}" title="Toggle Visibility">
+                                {% if short.is_active %}
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
+                                {% else %}
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21"/></svg>
+                                {% endif %}
+                            </button>
+                        </form>
+
+                        <!-- Reorder buttons -->
+                        <div class="flex flex-col gap-1 mx-2">
+                            {% if not loop.first %}
+                            <form action="{{ url_for('admin.shorts_move', id=short.id, direction='up') }}" method="POST">
+                                <button type="submit" class="text-gray-400 hover:text-primary-600 p-0.5 rounded hover:bg-primary-50 transition-colors" title="Move Up">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 15l7-7 7 7"/></svg>
+                                </button>
+                            </form>
+                            {% else %}
+                            <div class="w-5 h-5"></div>
+                            {% endif %}
+                            
+                            {% if not loop.last %}
+                            <form action="{{ url_for('admin.shorts_move', id=short.id, direction='down') }}" method="POST">
+                                <button type="submit" class="text-gray-400 hover:text-primary-600 p-0.5 rounded hover:bg-primary-50 transition-colors" title="Move Down">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                                </button>
+                            </form>
+                            {% else %}
+                            <div class="w-5 h-5"></div>
+                            {% endif %}
+                        </div>
+                        
+                        <!-- Delete button -->
+                        <form action="{{ url_for('admin.shorts_delete', id=short.id) }}" method="POST" onsubmit="return confirm('Delete this YouTube short?');">
+                            <button type="submit" class="admin-btn-icon text-red-500 hover:text-red-700 hover:bg-red-50" title="Delete">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+                            </button>
+                        </form>
+                    </div>
+                </li>
+                {% endfor %}
+            </ul>
+            {% else %}
+            <div class="p-8 text-center border-t border-gray-100">
+                <div class="w-16 h-16 bg-gray-50 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <svg class="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"/></svg>
+                </div>
+                <h3 class="text-lg font-medium text-gray-900 mb-1">No Shorts Yet</h3>
+                <p class="text-gray-500">Add a YouTube short using the form to display it on the homepage.</p>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- RIGHT: Add Short Form (1/3) -->
+    <div>
+        <div class="admin-card sticky top-6">
+            <div class="admin-card-header"><h2 class="admin-card-title">Add Short</h2></div>
+            <div class="p-6">
+                <form method="POST" action="{{ url_for('admin.shorts_add') }}" class="space-y-5">
+                    <div class="form-group">
+                        <label for="title" class="form-label">Title <span class="text-red-500">*</span></label>
+                        <input type="text" id="title" name="title" required class="form-input" placeholder="e.g. Sunset in Kashmir">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="video_url" class="form-label">YouTube URL <span class="text-red-500">*</span></label>
+                        <input type="url" id="video_url" name="video_url" required class="form-input" placeholder="https://www.youtube.com/shorts/...">
+                        <p class="text-xs text-gray-500 mt-1">Paste the full link to the YouTube Short.</p>
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-4">
+                        <div class="form-group">
+                            <label for="display_order" class="form-label">Order</label>
+                            <input type="number" id="display_order" name="display_order" value="{{ (shorts|length) + 1 }}" class="form-input">
+                        </div>
+                        
+                        <div class="form-group flex flex-col justify-end">
+                            <label class="flex items-center gap-2 cursor-pointer py-2">
+                                <input type="checkbox" name="is_active" class="form-checkbox" checked>
+                                <span class="text-sm font-medium text-gray-700">Active</span>
+                            </label>
+                        </div>
+                    </div>
+                    
+                    <button type="submit" class="admin-btn admin-btn-primary w-full justify-center mt-2">
+                        <svg class="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/></svg>
+                        Add Short
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

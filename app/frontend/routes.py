@@ -14,6 +14,7 @@ from app.models.inquiry import Inquiry
 from app.models.site_settings import SiteSettings
 from app.models.activity import Activity
 from app.models.activity_category import ActivityCategory
+from app.models.youtube_short import YoutubeShort
 
 @public_bp.route('/')
 def home():
@@ -27,8 +28,8 @@ def home():
     # Get activity categories
     activity_categories = ActivityCategory.query.filter_by(is_active=True).order_by(ActivityCategory.display_order).all()
     
-    # Get top 4 destinations
-    destinations = Destination.query.filter_by(is_active=True).limit(4).all()
+    # Get active destinations (sliced to max 8 in template)
+    destinations = Destination.query.filter_by(is_active=True).all()
     
     # Get featured testimonials
     testimonials = Testimonial.query.filter_by(is_featured=True, is_active=True).all()
@@ -45,6 +46,9 @@ def home():
     # Fetch top 8 homepage gallery images
     homepage_gallery = HomepageGalleryImage.query.filter_by(is_active=True).order_by(HomepageGalleryImage.display_order).limit(8).all()
     
+    # Fetch active YouTube shorts (limit 6 as per preference)
+    youtube_shorts = YoutubeShort.query.filter_by(is_active=True).order_by(YoutubeShort.display_order).limit(6).all()
+    
     return render_template('frontend/home.html', 
                            hero_slides=hero_slides,
                            announcement=announcement,
@@ -55,6 +59,7 @@ def home():
                            faqs=faqs,
                            gallery_images=gallery_images,
                            homepage_gallery=homepage_gallery,
+                           youtube_shorts=youtube_shorts,
                            settings=settings)
 
 

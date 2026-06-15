@@ -58,7 +58,7 @@
                         </div>
                         
                         <!-- Delete button -->
-                        <form action="{{ url_for('admin.package_image_delete', package_id=package.id, image_id=img.id) }}" method="POST" onsubmit="return confirm('Delete this image?');">
+                        <form action="{{ url_for('admin.package_image_delete', pkg_id=package.id, img_id=img.id) }}" method="POST" onsubmit="return confirm('Delete this image?');">
                             <button type="submit" class="admin-btn-icon text-red-500 hover:text-red-700 hover:bg-red-50" title="Delete">
                                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
                             </button>
@@ -80,6 +80,20 @@
         <div class="admin-card sticky top-6">
             <div class="admin-card-header"><h2 class="admin-card-title">Add Image</h2></div>
             <div class="p-6">
+                {% if package.images.count() >= 6 %}
+                <div class="bg-amber-50 text-amber-800 p-4 rounded-lg text-sm border border-amber-200 mb-4">
+                    Maximum of 6 gallery images reached. Please delete an existing image first if you want to upload a new one.
+                </div>
+                <form class="space-y-4 opacity-50 pointer-events-none">
+                    <div class="form-group">
+                        <label class="form-label">Image File</label>
+                        <input type="file" disabled class="form-input">
+                    </div>
+                    <button type="button" disabled class="admin-btn w-full justify-center bg-gray-100 text-gray-400 border border-gray-200 cursor-not-allowed">
+                        Upload Limit Reached (6/6)
+                    </button>
+                </form>
+                {% else %}
                 <form method="POST" action="{{ url_for('admin.package_gallery', id=package.id) }}" enctype="multipart/form-data" class="space-y-4">
                     <div class="form-group">
                         <label for="image_file" class="form-label">Image File <span class="text-red-500">*</span></label>
@@ -91,6 +105,7 @@
                         Upload to Cloudinary
                     </button>
                 </form>
+                {% endif %}
             </div>
         </div>
     </div>

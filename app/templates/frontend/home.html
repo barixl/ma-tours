@@ -172,8 +172,8 @@
         </div>
 
         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-            {% for dest in destinations %}
-            <div class="group relative h-80 rounded-2xl overflow-hidden cursor-pointer">
+            {% for dest in destinations[:8] %}
+            <a href="{{ url_for('public.destination_detail', slug=dest.slug) }}" class="group relative h-80 rounded-2xl overflow-hidden cursor-pointer block">
                 {% if dest.hero_image_url %}
                 <img src="{{ dest.hero_image_url }}" alt="{{ dest.name }}"
                     class="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-110">
@@ -187,9 +187,15 @@
                     <p class="text-sm text-gray-300 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
                         Explore tours &rarr;</p>
                 </div>
-            </div>
+            </a>
             {% endfor %}
         </div>
+
+        {% if destinations|length > 8 %}
+        <div class="text-center mt-12">
+            <a href="{{ url_for('public.destinations_list') }}" class="btn btn-secondary border-2 font-semibold">View All Destinations</a>
+        </div>
+        {% endif %}
     </div>
 </section>
 
@@ -203,7 +209,7 @@
 
         {% if activity_categories %}
         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-            {% for category in activity_categories %}
+            {% for category in activity_categories[:6] %}
             <a href="{{ url_for('public.activities_list') }}#{{ category.slug }}" class="group block relative rounded-2xl overflow-hidden aspect-square shadow-sm hover:shadow-xl transition-all duration-300">
                 {% if category.image_url %}
                 <img src="{{ category.image_url }}" alt="{{ category.name }}" class="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-110">
@@ -220,6 +226,12 @@
             </a>
             {% endfor %}
         </div>
+
+        {% if activity_categories|length > 6 %}
+        <div class="text-center mt-12">
+            <a href="{{ url_for('public.activities_list') }}" class="btn btn-secondary border-2 font-semibold">View All Activities</a>
+        </div>
+        {% endif %}
         {% else %}
         <div class="text-center py-12 text-gray-500">
             Experiences coming soon!
@@ -476,6 +488,100 @@
     </div>
 </section>
 
+<!-- YOUTUBE SHORTS SECTION -->
+{% if youtube_shorts %}
+<section class="py-16 bg-gray-50 border-t border-gray-100 overflow-hidden">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mb-8">
+        <div class="flex items-center justify-between">
+            <div>
+                <span class="text-primary-600 font-bold tracking-widest uppercase text-sm mb-2 block">Moments</span>
+                <h2 class="text-3xl font-serif font-bold text-gray-900">Experience the Magic</h2>
+            </div>
+            <div class="hidden sm:flex gap-2 text-gray-500 text-sm items-center">
+                <span>Swipe to explore</span>
+                <svg class="w-4 h-4 animate-bounce-x" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3"/></svg>
+            </div>
+        </div>
+    </div>
+
+    <div class="w-full relative px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
+        <!-- Horizontal Scroll Container -->
+        <div class="flex overflow-x-auto gap-6 pb-8 snap-x snap-mandatory hide-scrollbar style-shorts-scroll">
+            {% for short in youtube_shorts %}
+            <div class="snap-center shrink-0 w-[280px] sm:w-[320px] bg-white rounded-2xl shadow-lg overflow-hidden transform transition duration-300 hover:-translate-y-2 group">
+                <div class="relative w-full aspect-[9/16] bg-gray-900 group">
+                    <iframe 
+                        class="absolute top-0 left-0 w-full h-full border-0 pointer-events-auto"
+                        src="https://www.youtube.com/embed/{{ short.video_id }}?rel=0&modestbranding=1&autoplay=1&mute=1&loop=1&playlist={{ short.video_id }}&controls=0&enablejsapi=1" 
+                        title="{{ short.title }}" 
+                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" 
+                        allowfullscreen>
+                    </iframe>
+                    
+                    <!-- Audio Toggle Button -->
+                    <button type="button" class="absolute bottom-3 right-3 bg-black/40 hover:bg-black/70 text-white p-2 rounded-full backdrop-blur-md transition-all opacity-0 group-hover:opacity-100 focus:opacity-100 z-10 mute-toggle-btn" aria-label="Toggle audio">
+                        <svg class="w-5 h-5 icon-muted" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2"/></svg>
+                        <svg class="w-5 h-5 icon-unmuted hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.536 8.464a5 5 0 010 7.072m2.828-9.9a9 9 0 010 12.728M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z"/></svg>
+                    </button>
+                </div>
+                <div class="p-4 bg-white">
+                    <h3 class="font-bold text-gray-900 line-clamp-2 group-hover:text-primary-600 transition-colors">{{ short.title }}</h3>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</section>
+
+<style>
+/* Hide scrollbar but keep functionality */
+.hide-scrollbar::-webkit-scrollbar {
+    display: none;
+}
+.hide-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+}
+@keyframes bounce-x {
+    0%, 100% { transform: translateX(0); }
+    50% { transform: translateX(25%); }
+}
+.animate-bounce-x {
+    animation: bounce-x 1s infinite;
+}
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const toggleBtns = document.querySelectorAll('.mute-toggle-btn');
+    
+    toggleBtns.forEach(btn => {
+        btn.addEventListener('click', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            
+            const iframe = this.closest('.relative').querySelector('iframe');
+            const isCurrentlyMuted = this.querySelector('.icon-unmuted').classList.contains('hidden');
+            
+            if (isCurrentlyMuted) {
+                iframe.contentWindow.postMessage(JSON.stringify({event: 'command', func: 'unMute', args: []}), '*');
+                this.querySelector('.icon-muted').classList.add('hidden');
+                this.querySelector('.icon-unmuted').classList.remove('hidden');
+                this.classList.add('bg-primary-600', 'text-white');
+                this.classList.remove('bg-black/40');
+            } else {
+                iframe.contentWindow.postMessage(JSON.stringify({event: 'command', func: 'mute', args: []}), '*');
+                this.querySelector('.icon-unmuted').classList.add('hidden');
+                this.querySelector('.icon-muted').classList.remove('hidden');
+                this.classList.remove('bg-primary-600', 'text-white');
+                this.classList.add('bg-black/40', 'text-white');
+            }
+        });
+    });
+});
+</script>
+{% endif %}
+
 <!-- INQUIRY FORM SECTION -->
 <section id="inquiry-app" class="py-20 bg-gray-900 text-white relative overflow-hidden">
     <!-- Background Decor -->
@@ -493,15 +599,16 @@
                 <div class="space-y-6">
                     <div>
                         <h4 class="text-sm font-bold text-gray-400 uppercase tracking-wider mb-2">Location</h4>
-                        <p class="text-xl">Mumbai, India</p>
+                        <p class="text-xl">M A Tours And Travels</p>
+                        <p class="text-base text-gray-400 mt-1">Flate no: 801 A Wing Hanware Heights,<br>behind SBI Bank, 60 Feet Road,<br>Dharavi, Mumbai 400017</p>
                     </div>
                     <div>
-                        <h4 class="text-sm font-bold text-gray-400 uppercase tracking-wider mb-2">Phone</h4>
-                        <p class="text-xl">+91 98765 43210</p>
+                        <h4 class="text-sm font-bold text-gray-400 uppercase tracking-wider mb-2">Phone / WhatsApp</h4>
+                        <p class="text-xl">+91 7304916310</p>
                     </div>
                     <div>
                         <h4 class="text-sm font-bold text-gray-400 uppercase tracking-wider mb-2">Email</h4>
-                        <p class="text-xl">info@matours.com</p>
+                        <p class="text-xl">info@matoursandtravels.com</p>
                     </div>
                     
                     <div class="pt-6 border-t border-gray-800">
