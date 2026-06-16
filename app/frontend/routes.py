@@ -1,10 +1,10 @@
-from flask import render_template, request, jsonify
+from flask import render_template, request, jsonify, url_for
 
 from app.extensions import db
 from app.frontend import public_bp
 from app.models.hero_slide import HeroSlide
 from app.models.announcement import Announcement
-from app.models.package import Package
+from app.models.package import Package, PackageImage
 from app.models.destination import Destination
 from app.models.travel_style import TravelStyle
 from app.models.testimonial import Testimonial
@@ -100,6 +100,82 @@ def submit_inquiry():
     except Exception as e:
         db.session.rollback()
         return jsonify({"status": "error", "message": str(e)}), 500
+
+
+@public_bp.route('/api/search')
+def api_search():
+    """API endpoint to search across packages, destinations, and activities."""
+    query_str = request.args.get('q', '').strip()
+    if not query_str or len(query_str) < 2:
+        return jsonify({
+            "packages": [],
+            "destinations": [],
+            "activities": []
+        })
+        
+    search_pattern = f"%{query_str}%"
+    
+    # 1. Search Packages
+    packages = Package.query.filter(
+        Package.is_active == True,
+        (Package.title.ilike(search_pattern)) | 
+        (Package.short_description.ilike(search_pattern))
+    ).limit(5).all()
+    
+    # 2. Search Destinations
+    destinations = Destination.query.filter(
+        Destination.is_active == True,
+        (Destination.name.ilike(search_pattern)) | 
+        (Destination.description.ilike(search_pattern))
+    ).limit(5).all()
+    
+    # 3. Search Activities
+    activities = Activity.query.filter(
+        Activity.is_active == True,
+        (Activity.name.ilike(search_pattern)) | 
+        (Activity.description.ilike(search_pattern))
+    ).limit(5).all()
+    
+    # Format results
+    packages_data = []
+    for p in packages:
+        first_img = p.images.order_by(PackageImage.display_order).first()
+        packages_data.append({
+            "id": p.id,
+            "title": p.title,
+            "slug": p.slug,
+            "price_from": float(p.price_from) if p.price_from else None,
+            "duration_days": p.duration_days,
+            "duration_nights": p.duration_nights,
+            "image_url": first_img.image_url if first_img else None,
+            "url": url_for('public.package_detail', slug=p.slug)
+        })
+        
+    destinations_data = []
+    for d in destinations:
+        destinations_data.append({
+            "id": d.id,
+            "name": d.name,
+            "slug": d.slug,
+            "image_url": d.hero_image_url,
+            "url": url_for('public.destination_detail', slug=d.slug)
+        })
+        
+    activities_data = []
+    for a in activities:
+        activities_data.append({
+            "id": a.id,
+            "name": a.name,
+            "slug": a.slug,
+            "image_url": a.image_url,
+            "url": url_for('public.activity_detail', slug=a.slug)
+        })
+        
+    return jsonify({
+        "packages": packages_data,
+        "destinations": destinations_data,
+        "activities": activities_data
+    })
 
 
 @public_bp.route('/about')
