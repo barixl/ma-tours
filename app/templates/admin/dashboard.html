@@ -91,7 +91,7 @@
 <div class="admin-card">
     <div class="admin-card-header">
         <h2 class="admin-card-title">Recent Inquiries</h2>
-        <a href="#" class="admin-card-action">View All</a>
+        <a href="{{ url_for('admin.inquiries_list') }}" class="admin-btn admin-btn-secondary py-1 px-3 text-xs">View All</a>
     </div>
 
     {% if recent_inquiries %}

@@ -42,30 +42,30 @@
                 <!-- Logo -->
                 <div class="w-full flex justify-center md:w-auto md:justify-start">
                     <a href="{{ url_for('public.home') }}" class="flex items-center gap-2">
-                        <img v-if="!isScrolled && isTransparentPage" src="{{ url_for('static', filename='white-name-svg.svg') }}" alt="M.A. Tours Logo" class="h-12 md:h-14 w-auto" />
-                        <img v-else src="{{ url_for('static', filename='logo-svg.svg') }}" alt="M.A. Tours Logo" class="h-12 md:h-14 w-auto" />
+                        <img v-if="!isScrolled && isTransparentPage" src="{{ url_for('static', filename='white-name-svg.svg') }}" alt="M.A. Tours Logo" class="h-14 md:h-[72px] w-auto" />
+                        <img v-else src="{{ url_for('static', filename='logo-svg.svg') }}" alt="M.A. Tours Logo" class="h-14 md:h-[72px] w-auto" />
                     </a>
                 </div>
 
                 <!-- Desktop Menu -->
                 <div class="hidden md:flex items-center space-x-8">
-                    <a href="{{ url_for('public.home') }}" class="text-sm font-medium transition-colors hover:text-primary-500" :class="{'text-gray-600': isScrolled || !isTransparentPage, 'text-white/90': !isScrolled && isTransparentPage}">Home</a>
-                    <a href="{{ url_for('public.destinations_list') }}" class="text-sm font-medium transition-colors hover:text-primary-500" :class="{'text-gray-600': isScrolled || !isTransparentPage, 'text-white/90': !isScrolled && isTransparentPage}">Destinations</a>
-                    <a href="{{ url_for('public.packages_list') }}" class="text-sm font-medium transition-colors hover:text-primary-500" :class="{'text-gray-600': isScrolled || !isTransparentPage, 'text-white/90': !isScrolled && isTransparentPage}">Packages</a>
-                    <a href="{{ url_for('public.activities_list') }}" class="text-sm font-medium transition-colors hover:text-primary-500" :class="{'text-gray-600': isScrolled || !isTransparentPage, 'text-white/90': !isScrolled && isTransparentPage}">Activities</a>
-                    <a href="{{ url_for('public.gallery') }}" class="text-sm font-medium transition-colors hover:text-primary-500" :class="{'text-gray-600': isScrolled || !isTransparentPage, 'text-white/90': !isScrolled && isTransparentPage}">Gallery</a>
-                    <a href="{{ url_for('public.about') }}" class="text-sm font-medium transition-colors hover:text-primary-500" :class="{'text-gray-600': isScrolled || !isTransparentPage, 'text-white/90': !isScrolled && isTransparentPage}">About</a>
-                    <a href="{{ url_for('public.contact') }}" class="text-sm font-medium transition-colors hover:text-primary-500" :class="{'text-gray-600': isScrolled || !isTransparentPage, 'text-white/90': !isScrolled && isTransparentPage}">Contact</a>
+                    <a href="{{ url_for('public.home') }}" class="text-base font-medium transition-colors hover:text-primary-500" :class="{'text-gray-600': isScrolled || !isTransparentPage, 'text-white/90': !isScrolled && isTransparentPage}">Home</a>
+                    <a href="{{ url_for('public.destinations_list') }}" class="text-base font-medium transition-colors hover:text-primary-500" :class="{'text-gray-600': isScrolled || !isTransparentPage, 'text-white/90': !isScrolled && isTransparentPage}">Destinations</a>
+                    <a href="{{ url_for('public.packages_list') }}" class="text-base font-medium transition-colors hover:text-primary-500" :class="{'text-gray-600': isScrolled || !isTransparentPage, 'text-white/90': !isScrolled && isTransparentPage}">Packages</a>
+                    <a href="{{ url_for('public.activities_list') }}" class="text-base font-medium transition-colors hover:text-primary-500" :class="{'text-gray-600': isScrolled || !isTransparentPage, 'text-white/90': !isScrolled && isTransparentPage}">Activities</a>
+                    <a href="{{ url_for('public.gallery') }}" class="text-base font-medium transition-colors hover:text-primary-500" :class="{'text-gray-600': isScrolled || !isTransparentPage, 'text-white/90': !isScrolled && isTransparentPage}">Gallery</a>
+                    <a href="{{ url_for('public.about') }}" class="text-base font-medium transition-colors hover:text-primary-500" :class="{'text-gray-600': isScrolled || !isTransparentPage, 'text-white/90': !isScrolled && isTransparentPage}">About</a>
+                    <a href="{{ url_for('public.contact') }}" class="text-base font-medium transition-colors hover:text-primary-500" :class="{'text-gray-600': isScrolled || !isTransparentPage, 'text-white/90': !isScrolled && isTransparentPage}">Contact</a>
                     
                     <!-- Search Mock Icon -->
-                    <button class="text-sm font-medium transition-colors hover:text-primary-500 flex items-center" :class="{'text-gray-600': isScrolled || !isTransparentPage, 'text-white/90': !isScrolled && isTransparentPage}">
+                    <button class="text-base font-medium transition-colors hover:text-primary-500 flex items-center" :class="{'text-gray-600': isScrolled || !isTransparentPage, 'text-white/90': !isScrolled && isTransparentPage}">
                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
                     </button>
                 </div>
 
                 <!-- CTA Button -->
                 <div class="hidden md:flex">
-                    <a href="{{ url_for('public.home') }}#inquiry-app" class="btn px-6 py-2.5 text-sm font-semibold rounded-full shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all" 
+                    <a href="{{ url_for('public.home') }}#inquiry-app" class="btn px-6 py-2.5 text-base font-semibold rounded-full shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all" 
                        :class="{'bg-primary-600 text-white hover:bg-primary-700': isScrolled || !isTransparentPage, 'bg-white text-gray-900 hover:bg-gray-50': !isScrolled && isTransparentPage}">
                         Plan Trip
                     </a>
