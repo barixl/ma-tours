@@ -308,3 +308,32 @@ def activity_detail(slug):
     packages = Package.query.join(Package.activities).filter(Activity.id == activity.id, Package.is_active == True).order_by(Package.created_at.desc()).all()
     settings = SiteSettings.query.first()
     return render_template('frontend/activities/detail.html', activity=activity, packages=packages, settings=settings)
+
+
+@public_bp.after_request
+def add_cache_control_headers(response):
+    """Add cache control headers to make public views instant via CDN edge caching."""
+    # Only cache successful GET requests
+    if request.method == 'GET' and response.status_code == 200:
+        cacheable_paths = {
+            '/', 
+            '/about', 
+            '/packages', 
+            '/destinations', 
+            '/activities'
+        }
+        path = request.path
+        
+        # Match base listing pages or individual detail pages
+        is_cacheable = path in cacheable_paths or \
+                       path.startswith('/packages/') or \
+                       path.startswith('/destinations/') or \
+                       path.startswith('/activities/')
+                       
+        if is_cacheable:
+            # s-maxage=3600: Cache at Vercel CDN edge for 1 hour
+            # max-age=0: Force browser to check with CDN on page reload
+            # stale-while-revalidate=60: Serve stale content instantly while updating cache in background
+            response.headers['Cache-Control'] = 'public, max-age=0, s-maxage=3600, stale-while-revalidate=60'
+            
+    return response
